@@ -1,20 +1,33 @@
+mod addressing;
+mod constants;
+mod memory;
+mod traits;
+
 use anyhow::Result;
+use memory::ZMemory;
 use std::io::Read;
 
+pub type ZMachine=Machine<ZMemory>;
+
+impl ZMachine {
+    pub fn from_reader<R>(rdr: R) -> Result<ZMachine> where R:Read {
+        let memory = ZMemory::from_reader(rdr)?;
+        Machine::with_memory(memory)
+    }
+}
+
 #[derive(Default)]
-pub struct ZMachine {
-    _memory: (),
+pub struct Machine<M> {
+    _memory: M,
     _pc: (),
     _processor: (),
     _stack: (),
 }
 
-impl ZMachine {
-    pub fn from_reader<R>(_rdr: R) -> Result<ZMachine>
-    where
-        R: Read,
+impl<M> Machine<M> {
+    pub fn with_memory(memory: M) -> Result<Machine<M>>
     {
-        Ok(ZMachine::default())
+        Ok(Machine{_memory: memory, _pc: (), _processor:(), _stack:() })
     }
 
     pub fn run(self) -> Result<()> {
