@@ -7,6 +7,7 @@ pub trait Version {
     fn string_offset(word: u16) -> ZOffset;
 }
 
+#[derive(Debug, Clone, Copy)]
 pub struct V3;
 
 impl Version for V3 {
@@ -21,6 +22,7 @@ impl Version for V3 {
     }
 }
 
+#[derive(Debug, Clone, Copy)]
 pub struct V5;
 
 impl Version for V5 {
