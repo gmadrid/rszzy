@@ -1,4 +1,6 @@
+use super::versions::Version;
 use std::fmt::Display;
+use std::marker::PhantomData;
 
 #[derive(Default, Debug, Clone, Copy)]
 pub struct ZOffset(usize);
@@ -56,22 +58,24 @@ impl From<WordAddress> for ZOffset {
 
 // ZSpec 1.2.3
 #[derive(Debug, Clone, Copy)]
-pub struct PackedAddress(u16);
+pub struct PackedAddress<V: Version>(u16, PhantomData<V>);
 
-impl PackedAddress {
+impl<V> PackedAddress<V>
+where
+    V: Version,
+{
     pub fn routine_offset(self) -> ZOffset {
-        // TODO: This only works for V1-V3.
-        ZOffset(usize::from(self.0 * 2))
+        V::routine_offset(self.0)
     }
 
     pub fn string_offset(self) -> ZOffset {
-        // TODO: This only works for V1-V3.
-        ZOffset(usize::from(self.0 * 2))
+        V::string_offset(self.0)
     }
 }
 
 #[cfg(test)]
 mod test {
+    use super::super::versions::{V3, V5};
     use super::*;
 
     #[test]
@@ -93,7 +97,22 @@ mod test {
 
     #[test]
     fn test_packed_address() {
-        assert_eq!(44, usize::from(PackedAddress(22).routine_offset()));
-        assert_eq!(44, usize::from(PackedAddress(22).string_offset()));
+        assert_eq!(
+            44,
+            usize::from(PackedAddress::<V3>(22, PhantomData).routine_offset())
+        );
+        assert_eq!(
+            44,
+            usize::from(PackedAddress::<V3>(22, PhantomData).string_offset())
+        );
+
+        assert_eq!(
+            88,
+            usize::from(PackedAddress::<V5>(22, PhantomData).routine_offset())
+        );
+        assert_eq!(
+            88,
+            usize::from(PackedAddress::<V5>(22, PhantomData).string_offset())
+        );
     }
 }

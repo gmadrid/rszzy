@@ -2,6 +2,7 @@ mod addressing;
 mod constants;
 mod memory;
 mod traits;
+mod versions;
 
 use anyhow::Result;
 use memory::ZMemory;
