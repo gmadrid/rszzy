@@ -1,6 +1,7 @@
 use super::addressing::ZOffset;
-use super::constants::header_offset::{HIGH_MEMORY_MARK, STATIC_MEMORY_START};
+use super::constants::header_offset::{HIGH_MEMORY_MARK, STATIC_MEMORY_START, VERSION_NUMBER};
 use super::traits::Memory;
+use super::versions::number_to_version;
 use anyhow::{anyhow, Result};
 use std::io::Read;
 use std::ops::Range;
@@ -62,6 +63,17 @@ impl ZMemory {
     {
         let mut bytes = Vec::new();
         rdr.read_to_end(&mut bytes)?;
+
+        let version_number = bytes::byte_from_slice(&bytes, VERSION_NUMBER);
+        let version = number_to_version(version_number)?;
+
+        if version.max_story_len < bytes.len() {
+            return Err(anyhow!(
+                "Story too long. Max: {}. Actual: {}.",
+                version.max_story_len,
+                bytes.len()
+            ));
+        }
 
         // ZSpec 1.1
         // - definition of three regions (dynamic, static, high)
@@ -126,6 +138,7 @@ mod test {
 
     fn fake_memory(size: usize) -> ZMemory {
         let mut v = vec![0; size];
+        bytes::byte_to_slice(&mut v, 0usize, 3); // Version 3
         bytes::word_to_slice(&mut v, STATIC_MEMORY_START, FAKE_STATIC_START as u16);
         bytes::word_to_slice(&mut v, HIGH_MEMORY_MARK, FAKE_HIGH_START as u16);
         ZMemory::from_reader(<&[u8]>::from(&v)).unwrap()

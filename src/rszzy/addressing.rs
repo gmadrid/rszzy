@@ -57,24 +57,21 @@ impl From<WordAddress> for ZOffset {
 
 // ZSpec 1.2.3
 #[derive(Debug, Clone, Copy)]
-pub struct PackedAddress<V: Version>(u16, V);
+pub struct PackedAddress(u16);
 
-impl<V> PackedAddress<V>
-where
-    V: Version,
-{
-    pub fn routine_offset(self) -> ZOffset {
-        V::routine_offset(self.0)
+impl PackedAddress {
+    pub fn routine_offset(self, version: &Version) -> ZOffset {
+        ZOffset::from(usize::from(self.0 * version.packed_multiplier as u16))
     }
 
-    pub fn string_offset(self) -> ZOffset {
-        V::string_offset(self.0)
+    pub fn string_offset(self, version: &Version) -> ZOffset {
+        ZOffset::from(usize::from(self.0 * version.packed_multiplier as u16))
     }
 }
 
 #[cfg(test)]
 mod test {
-    use super::super::versions::{V3, V5};
+    use super::super::versions::number_to_version;
     use super::*;
 
     #[test]
@@ -96,24 +93,12 @@ mod test {
 
     #[test]
     fn test_packed_address() {
-        let v3 = V3;
-        assert_eq!(
-            44,
-            usize::from(PackedAddress(22, v3).routine_offset())
-        );
-        assert_eq!(
-            44,
-            usize::from(PackedAddress(22, v3).string_offset())
-        );
+        let v3 = number_to_version(3).unwrap();
+        assert_eq!(44, usize::from(PackedAddress(22).routine_offset(&v3)));
+        assert_eq!(44, usize::from(PackedAddress(22).string_offset(&v3)));
 
-        let v5 = V5;
-        assert_eq!(
-            88,
-            usize::from(PackedAddress(22, v5).routine_offset())
-        );
-        assert_eq!(
-            88,
-            usize::from(PackedAddress(22, v5).string_offset())
-        );
+        let v5 = number_to_version(5).unwrap();
+        assert_eq!(88, usize::from(PackedAddress(22).routine_offset(&v5)));
+        assert_eq!(88, usize::from(PackedAddress(22).string_offset(&v5)));
     }
 }

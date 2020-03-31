@@ -1,38 +1,36 @@
-use super::addressing::{ZOffset};
+use anyhow::{anyhow, Result};
+use std::fmt::{Display, Formatter};
 
-pub trait Version {
-    const NUMBER: u8;
+pub struct Version {
+    pub version_number: u8,
+    pub max_story_len: usize,
 
-    fn routine_offset(word: u16) -> ZOffset;
-    fn string_offset(word: u16) -> ZOffset;
+    pub packed_multiplier: u8,
 }
 
-#[derive(Debug, Clone, Copy)]
-pub struct V3;
-
-impl Version for V3 {
-    const NUMBER: u8 = 3;
-
-    fn routine_offset(word: u16) -> ZOffset {
-        ZOffset::from(usize::from(word * 2))
-    }
-
-    fn string_offset(word: u16) -> ZOffset {
-        ZOffset::from(usize::from(word * 2))
+impl Display for Version {
+    fn fmt(&self, fmt: &mut Formatter) -> std::result::Result<(), std::fmt::Error> {
+        write!(fmt, "Version {}", self.version_number)
     }
 }
 
-#[derive(Debug, Clone, Copy)]
-pub struct V5;
+const V3: Version = Version {
+    version_number: 3,
+    max_story_len: 128 * 1024,
+    packed_multiplier: 2,
+};
 
-impl Version for V5 {
-    const NUMBER: u8 = 5;
+const V5: Version = Version {
+    version_number: 5,
+    max_story_len: 256 * 1024,
+    packed_multiplier: 4,
+};
 
-    fn routine_offset(word: u16) -> ZOffset {
-        ZOffset::from(usize::from(word * 4))
-    }
+pub fn number_to_version(number: u8) -> Result<&'static Version> {
+    let versions: Vec<&'static Version> = vec![&V3, &V5];
 
-    fn string_offset(word: u16) -> ZOffset {
-        ZOffset::from(usize::from(word * 4))
-    }
+    versions
+        .into_iter()
+        .find(|v| v.version_number == number)
+        .ok_or_else(|| anyhow!("Unknown (or unimplemented) version number: {}", number))
 }
