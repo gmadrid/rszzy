@@ -1,7 +1,7 @@
 mod rszzy;
 
-use std::fs::File;
 use rszzy::ZMachine;
+use std::fs::File;
 use structopt::StructOpt;
 
 #[derive(StructOpt, Debug)]

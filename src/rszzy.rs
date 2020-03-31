@@ -7,10 +7,13 @@ use anyhow::Result;
 use memory::ZMemory;
 use std::io::Read;
 
-pub type ZMachine=Machine<ZMemory>;
+pub type ZMachine = Machine<ZMemory>;
 
 impl ZMachine {
-    pub fn from_reader<R>(rdr: R) -> Result<ZMachine> where R:Read {
+    pub fn from_reader<R>(rdr: R) -> Result<ZMachine>
+    where
+        R: Read,
+    {
         let memory = ZMemory::from_reader(rdr)?;
         Machine::with_memory(memory)
     }
@@ -25,9 +28,13 @@ pub struct Machine<M> {
 }
 
 impl<M> Machine<M> {
-    pub fn with_memory(memory: M) -> Result<Machine<M>>
-    {
-        Ok(Machine{_memory: memory, _pc: (), _processor:(), _stack:() })
+    pub fn with_memory(memory: M) -> Result<Machine<M>> {
+        Ok(Machine {
+            _memory: memory,
+            _pc: (),
+            _processor: (),
+            _stack: (),
+        })
     }
 
     pub fn run(self) -> Result<()> {

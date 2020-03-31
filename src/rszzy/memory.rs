@@ -1,7 +1,7 @@
 use super::addressing::ZOffset;
-use super::constants::header_offset::STATIC_MEMORY_START;
+use super::constants::header_offset::{HIGH_MEMORY_MARK, STATIC_MEMORY_START};
 use super::traits::Memory;
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 use std::io::Read;
 use std::ops::Range;
 
@@ -63,8 +63,28 @@ impl ZMemory {
         let mut bytes = Vec::new();
         rdr.read_to_end(&mut bytes)?;
 
+        // ZSpec 1.1
+        // - definition of three regions (dynamic, static, high)
+        // - dynamic memory must have at least 64 bytes
+        // - dynamic memory cannot overlap high memory
         let start_of_static = usize::from(bytes::word_from_slice(&bytes, STATIC_MEMORY_START));
         let end_of_static = std::cmp::min(0xffff, bytes.len());
+        let start_of_high = usize::from(bytes::word_from_slice(&bytes, HIGH_MEMORY_MARK));
+
+        if start_of_static < 64 {
+            return Err(anyhow!(
+                "Dynamic memory must contain at least 64 bytes, but contains {}",
+                start_of_static
+            ));
+        }
+
+        if start_of_high < start_of_static {
+            return Err(anyhow!(
+                "High memory begins at {} which overlaps dynamic memory which ends at {}",
+                start_of_high,
+                start_of_static - 1
+            ));
+        }
 
         Ok(ZMemory {
             bytes,
@@ -101,28 +121,32 @@ impl Memory for ZMemory {
 mod test {
     use super::*;
 
+    const FAKE_STATIC_START: usize = 0x50;
+    const FAKE_HIGH_START: usize = 0x200;
+
+    fn fake_memory(size: usize) -> ZMemory {
+        let mut v = vec![0; size];
+        bytes::word_to_slice(&mut v, STATIC_MEMORY_START, FAKE_STATIC_START as u16);
+        bytes::word_to_slice(&mut v, HIGH_MEMORY_MARK, FAKE_HIGH_START as u16);
+        ZMemory::from_reader(<&[u8]>::from(&v)).unwrap()
+    }
+
     #[test]
     fn test_size() {
-        let v = vec![0; 52];
-        let m = ZMemory::from_reader(<&[u8]>::from(&v)).unwrap();
-
+        let m = fake_memory(52);
         assert_eq!(52, m.memory_size());
     }
 
     #[test]
     fn test_ranges() {
-        let static_start = 0x50;
-
-        let mut v = vec![0; 0x1000];
-        bytes::word_to_slice(&mut v, STATIC_MEMORY_START, static_start);
-        let m = ZMemory::from_reader(<&[u8]>::from(&v)).unwrap();
+        let m = fake_memory(0x1000);
 
         assert_eq!(true, m.in_dynamic_range(0.into()));
-        assert_eq!(true, m.in_dynamic_range(0x49.into()));
-        assert_eq!(false, m.in_dynamic_range(0x50.into()));
+        assert_eq!(true, m.in_dynamic_range((FAKE_STATIC_START - 1).into()));
+        assert_eq!(false, m.in_dynamic_range(FAKE_STATIC_START.into()));
 
-        assert_eq!(false, m.in_static_range(0x49.into()));
-        assert_eq!(true, m.in_static_range(0x50.into()));
+        assert_eq!(false, m.in_static_range((FAKE_STATIC_START - 1).into()));
+        assert_eq!(true, m.in_static_range(FAKE_STATIC_START.into()));
         assert_eq!(true, m.in_static_range(0x1ff.into()));
         assert_eq!(true, m.in_static_range(0x200.into()));
         assert_eq!(true, m.in_static_range(0x0fff.into()));
@@ -131,8 +155,7 @@ mod test {
 
     #[test]
     fn test_read_write() {
-        let v = vec![0; 0x1000];
-        let mut m = ZMemory::from_reader(<&[u8]>::from(&v)).unwrap();
+        let mut m = fake_memory(0x1000);
 
         assert_eq!(0, m.read_byte_unchecked(0x34.into()).unwrap());
         assert!(m.write_byte_unchecked(0x34.into(), 87).is_ok());

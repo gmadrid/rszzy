@@ -13,6 +13,8 @@ pub trait Memory {
     fn write_byte_unchecked(&mut self, offset: ZOffset, val: u8) -> Result<()>;
 
     fn read_byte(&self, offset: ZOffset) -> Result<u8> {
+        // ZSpec 1.1.1, 1.1.2, 1.1.3
+        // - only dynamic and static memory may be read by the game.
         if !self.in_dynamic_range(offset) && !self.in_static_range(offset) {
             return Err(anyhow!("Reading from illegal index: {}", offset));
         }
@@ -20,6 +22,9 @@ pub trait Memory {
     }
 
     fn write_byte(&mut self, offset: ZOffset, val: u8) -> Result<()> {
+        // ZSpec 1.1.1, 1.1.2, 1.1.3
+        // - only dynamic memory may be written.
+        // TODO ZSpec 1.1.1.1
         if !self.in_dynamic_range(offset) {
             return Err(anyhow!("Writing to illegal index: {}", offset));
         }
