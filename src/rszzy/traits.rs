@@ -1,97 +1,39 @@
 use super::addressing::ZOffset;
 use super::Result;
 use anyhow::anyhow;
-use std::ops::Range;
 
+// TODO: document all of this.
 pub trait Memory {
     fn memory_size(&self) -> usize;
 
-    fn dynamic_range(&self) -> Range<usize>;
-    fn static_range(&self) -> Range<usize>;
-    fn high_memory_range(&self) -> Range<usize>;
+    fn in_dynamic_range(&self, idx: ZOffset) -> bool;
+    fn in_static_range(&self, idx: ZOffset) -> bool;
 
     fn read_byte_unchecked(&self, offset: ZOffset) -> Result<u8>;
     fn write_byte_unchecked(&mut self, offset: ZOffset, val: u8) -> Result<()>;
 
     fn read_byte(&self, offset: ZOffset) -> Result<u8> {
-        let idx = usize::from(offset);
-        if !self.dynamic_range().contains(&idx) && !self.static_range().contains(&idx) {
-            return Err(anyhow!("Reading from illegal index: {}", idx));
+        if !self.in_dynamic_range(offset) && !self.in_static_range(offset) {
+            return Err(anyhow!("Reading from illegal index: {}", offset));
         }
         self.read_byte_unchecked(offset)
     }
 
     fn write_byte(&mut self, offset: ZOffset, val: u8) -> Result<()> {
-        let idx = usize::from(offset);
-        if !self.dynamic_range().contains(&idx) {
-            return Err(anyhow!("Writing to illegal index: {}", idx));
+        if !self.in_dynamic_range(offset) {
+            return Err(anyhow!("Writing to illegal index: {}", offset));
         }
         self.write_byte_unchecked(offset, val)
     }
 
-    /*
-
-
-
-
-    fn get_byte<T>(&self, at: T) -> u8
-    where
-        T: Into<ZOffset> + Copy;
-
-    fn set_byte<T>(&mut self, at: T, val: u8)
-    where
-        T: Into<ZOffset> + Copy;
-
-    fn is_readable<T>(&self, _at: T) -> bool
-    where
-        T: Into<ZOffset> + Copy,
-    {
-        true
-    }
-
-    fn is_writeable<T>(&self, _at: T) -> bool
-    where
-        T: Into<ZOffset> + Copy,
-    {
-        true
-    }
-
-    fn read_byte<T>(&self, at: T) -> u8
+    fn read_word<T>(&self, at: T) -> Result<u16>
     where
         T: Into<ZOffset> + Copy,
     {
         let offset = at.into();
-        if !self.is_readable(offset) {
-            // Reading from memory is the most common operation that the
-            // ZMachine executes, and there are NO unreadable memory
-            // locations.  I'm choosing to return the bare byte and not a
-            // result, but on the chance that somebody implements unreadable
-            // memory, I'm check-panicking.
-            panic!("Attempt to read unreadable byte at {}", offset);
-        }
-        self.get_byte(offset)
-    }
-
-    fn write_byte<T>(&mut self, at: T, val: u8) -> Result<()>
-    where
-        T: Into<ZOffset> + Copy,
-    {
-        let offset = at.into();
-        if !self.is_writeable(offset) {
-            return Err(anyhow!("Writing unwritable offset {}", offset));
-        }
-        self.set_byte(offset, val);
-        Ok(())
-    }
-
-    fn read_word<T>(&self, at: T) -> u16
-    where
-        T: Into<ZOffset> + Copy,
-    {
-        let offset = at.into();
-        let high_byte = u16::from(self.read_byte(offset));
-        let low_byte = u16::from(self.read_byte(offset.inc_by(1)));
-        (high_byte << 8) + low_byte
+        let high_byte = u16::from(self.read_byte(offset)?);
+        let low_byte = u16::from(self.read_byte(offset + 1)?);
+        Ok((high_byte << 8) + low_byte)
     }
 
     // May fail if word is outside dynamic memory.
@@ -103,8 +45,8 @@ pub trait Memory {
         let high_byte = ((val >> 8) & 0xff) as u8;
         let low_byte = (val & 0xff) as u8;
         self.write_byte(offset, high_byte)?;
-        self.write_byte(offset.inc_by(1), low_byte)
-    }*/
+        self.write_byte(offset + 1, low_byte)
+    }
 }
 
 #[cfg(test)]
@@ -124,16 +66,12 @@ mod test {
             100
         }
 
-        fn dynamic_range(&self) -> Range<usize> {
-            0..10
+        fn in_dynamic_range(&self, idx: ZOffset) -> bool {
+            (0..10).contains(&usize::from(idx))
         }
 
-        fn static_range(&self) -> Range<usize> {
-            10..20
-        }
-
-        fn high_memory_range(&self) -> Range<usize> {
-            20..self.memory_size()
+        fn in_static_range(&self, idx: ZOffset) -> bool {
+            (10..20).contains(&usize::from(idx))
         }
 
         fn read_byte_unchecked(&self, offset: ZOffset) -> Result<u8> {
@@ -149,14 +87,6 @@ mod test {
     #[test]
     fn test_size() {
         assert_eq!(100, TestMemory::default().memory_size())
-    }
-
-    #[test]
-    fn test_ranges() {
-        let m = TestMemory::default();
-        assert_eq!(0..10, m.dynamic_range());
-        assert_eq!(10..20, m.static_range());
-        assert_eq!(20..100, m.high_memory_range());
     }
 
     #[test]
