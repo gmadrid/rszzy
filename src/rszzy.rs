@@ -22,9 +22,16 @@ impl ZMachine {
 
 #[derive(Default)]
 pub struct Machine<M> {
+    // The ZMachine's "core" memory. Loaded from the story file
     _memory: M,
+
+    // program counter
     _pc: (),
+
+    // The "CPU"
     _processor: (),
+
+    // Runtime stack for procedure calls/local vars
     _stack: (),
 }
 
