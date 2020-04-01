@@ -2,7 +2,10 @@ use super::addressing::ZOffset;
 use super::Result;
 use anyhow::anyhow;
 
-// TODO: document all of this.
+/// Abstract model of ZMachine memory as defined in ZSpec 1.
+/// Implementors of the trait provide access to the backing store,
+/// while the default functions will manage access control and
+/// byte order.
 pub trait Memory {
     fn memory_size(&self) -> usize;
 

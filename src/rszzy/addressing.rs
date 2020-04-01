@@ -1,6 +1,15 @@
 use super::versions::Version;
 use std::fmt::Display;
 
+/// Abstract representation for an offset into the "memory" of the ZMachine.
+/// The ZMachine has at least 4 different ways of representing a pointer:
+///
+/// * ByteAddress
+/// * WordAddress
+/// * PackedAddress
+/// * the PC (this is not called out explicitly in the ZSpec, but it acts as a ZOffset.
+///
+/// See each address type for details.
 #[derive(Default, Debug, Clone, Copy)]
 pub struct ZOffset(usize);
 
@@ -35,7 +44,7 @@ impl Display for ZOffset {
 
 // ZSpec 1.2 - three kinds of addresses.
 
-// ZSpec 1.2.1
+/// ZSpec 1.2.1 - 2-byte address that can be used directly.
 #[derive(Debug, Clone, Copy)]
 pub struct ByteAddress(u16);
 
@@ -45,7 +54,8 @@ impl From<ByteAddress> for ZOffset {
     }
 }
 
-// ZSpec 1.2.2
+/// ZSpec 1.2.2 - 2-byte address that counts words, not bytes.
+/// The underlying value is multiplied by 2 to create the ZOffset.
 #[derive(Debug, Clone, Copy)]
 pub struct WordAddress(u16);
 
@@ -55,7 +65,9 @@ impl From<WordAddress> for ZOffset {
     }
 }
 
-// ZSpec 1.2.3
+/// ZSpec 1.2.3 - 2 byte address, possibly into high memory.
+/// Used to refer to routines and strings. Interpreted differently
+/// on almost every ZVersion.
 #[derive(Debug, Clone, Copy)]
 pub struct PackedAddress(u16);
 

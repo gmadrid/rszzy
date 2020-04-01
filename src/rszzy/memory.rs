@@ -6,6 +6,12 @@ use anyhow::{anyhow, Result};
 use std::io::Read;
 use std::ops::Range;
 
+/// Concrete model of the ZMachine memory as defined in ZSpec 1.
+///
+/// Manages
+/// * loading a story file from a Reader
+/// * validating the story file after loading
+/// * defining the memory regions as defined in the story file.
 pub struct ZMemory {
     bytes: Vec<u8>,
 
