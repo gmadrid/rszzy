@@ -10,7 +10,7 @@ pub struct Version {
 
 impl Display for Version {
     fn fmt(&self, fmt: &mut Formatter) -> std::result::Result<(), std::fmt::Error> {
-        write!(fmt, "Version {}", self.version_number)
+        write!(fmt, "V{}", self.version_number)
     }
 }
 

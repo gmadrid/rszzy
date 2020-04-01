@@ -67,6 +67,8 @@ impl ZMemory {
         let version_number = bytes::byte_from_slice(&bytes, VERSION_NUMBER);
         let version = number_to_version(version_number)?;
 
+        println!("Version: {}", version);
+
         if version.max_story_len < bytes.len() {
             return Err(anyhow!(
                 "Story too long. Max: {}. Actual: {}.",
