@@ -1,6 +1,7 @@
 mod addressing;
 mod constants;
 mod memory;
+mod text;
 mod traits;
 mod versions;
 
