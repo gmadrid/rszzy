@@ -1,4 +1,5 @@
-// Constants for offsets into the header.
+/// Offsets into Header memory (the first 64bytes).
+/// See ZSpec 11 for details.
 pub mod header_offset {
     pub const VERSION_NUMBER: usize = 0x00;
     pub const HIGH_MEMORY_MARK: usize = 0x04;
