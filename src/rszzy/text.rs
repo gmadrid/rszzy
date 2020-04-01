@@ -1,17 +1,23 @@
 use std::char::{decode_utf16, REPLACEMENT_CHARACTER};
 
+/// ZSpec 3.5.3 - Basic alphabet table for V2+.
 const V2_ALPHA_TABLE: &[u8] =
     b"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ \n0123456789.,!?_#'\"/\\-:()";
 
+/// ZSpec 3.8 - A ZSCII character.
+/// ZSCII defines 10-bit characters.
 struct ZSCII(u16);
 
+/// A ZString is a sequence of ZSCII characters.
+/// To minimize copying, ZString is implemented as an Iterator. If a String is desired,
+/// use String::from().
 struct ZString<'a> {
     zchars: ZCharIter<'a>,
-
     active_charset: u8,
 }
 
 impl<'a> ZString<'a> {
+    /// Creates a new ZString from the bytes in the slice.
     fn new(buf: &[u8]) -> ZString {
         ZString {
             zchars: ZCharIter::new(buf),
@@ -61,6 +67,11 @@ impl Iterator for ZString<'_> {
     }
 }
 
+/// ZSpec 3.2 - ZStrings are stored in a sequence of ZChars which are 5-bit values.
+/// 3 ZChars are stored in every two bytes (along with a "stop" bit).
+/// ZCharIter provides an Iterator over those ZChars.
+/// It attempts to be tolerant of its inputs, accepting some sequences
+/// which are not specified by the ZSpec: zero-length or odd-length slices.
 struct ZCharIter<'a> {
     done: bool,
     buf: &'a [u8],
