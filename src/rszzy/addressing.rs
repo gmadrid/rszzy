@@ -48,6 +48,12 @@ impl Display for ZOffset {
 #[derive(Debug, Clone, Copy)]
 pub struct ByteAddress(u16);
 
+impl ByteAddress {
+    pub fn raw(addr: u16) -> ByteAddress {
+        ByteAddress(addr)
+    }
+}
+
 impl From<ByteAddress> for ZOffset {
     fn from(ba: ByteAddress) -> ZOffset {
         ZOffset(usize::from(ba.0))
