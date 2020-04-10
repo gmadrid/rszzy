@@ -6,10 +6,11 @@ mod text;
 mod traits;
 mod versions;
 
+use crate::rszzy::traits::AbbrevTable;
 use anyhow::Result;
 use memory::ZMemory;
-use traits::Memory;
 use std::io::Read;
+use traits::Memory;
 
 /// The public API for the ZMachine.
 /// All component types are defined.
@@ -42,7 +43,10 @@ pub struct Machine<M> {
     _stack: (),
 }
 
-impl<M> Machine<M> where M: Memory {
+impl<M> Machine<M>
+where
+    M: Memory,
+{
     fn with_memory(memory: M) -> Result<Machine<M>> {
         Ok(Machine {
             _memory: memory,
@@ -53,10 +57,20 @@ impl<M> Machine<M> where M: Memory {
     }
 
     pub fn run(self) -> Result<()> {
-        let addr = abbrevs::abbrev_location()?;
-        let s = text::ZString::new(self._memory.
-                                   slice_at(addr.into())?);
-        let str = String::from(s);
+        let abbrev_table = abbrevs::ZAbbrevTable::new(&self._memory)?;
+        for table in 1..=3 {
+            for i in 0..32 {
+                let addr = abbrev_table.abbrev_location(&self._memory, table, i)?;
+                let s = text::ZString::new(self._memory.slice_at(addr.into())?);
+                println!("Table: {}, index: {}: {}", table, i, String::from(s));
+            }
+        }
+
+        //        let addr = abbrevs::abbrev_location(&self._memory, 1, 0)?;
+        //        let s = text::ZString::new(self._memory.
+        //                                   slice_at(addr.into())?);
+        //        let str = String::from(s);
+        //        println!("{}", str);
         Ok(())
     }
 }

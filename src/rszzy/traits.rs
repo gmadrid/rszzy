@@ -1,4 +1,4 @@
-use super::addressing::ZOffset;
+use super::addressing::{WordAddress, ZOffset};
 use super::Result;
 use anyhow::anyhow;
 
@@ -42,7 +42,7 @@ pub trait Memory {
     {
         let offset = at.into();
         let high_byte = u16::from(self.read_byte(offset)?);
-        let low_byte = u16::from(self.read_byte(offset + 1)?);
+        let low_byte = u16::from(self.read_byte(offset + 1usize)?);
         Ok((high_byte << 8) + low_byte)
     }
 
@@ -55,8 +55,12 @@ pub trait Memory {
         let high_byte = ((val >> 8) & 0xff) as u8;
         let low_byte = (val & 0xff) as u8;
         self.write_byte(offset, high_byte)?;
-        self.write_byte(offset + 1, low_byte)
+        self.write_byte(offset + 1usize, low_byte)
     }
+}
+
+pub trait AbbrevTable {
+    fn abbrev_location(&self, memory: &impl Memory, table: u8, idx: u8) -> Result<WordAddress>;
 }
 
 #[cfg(test)]
