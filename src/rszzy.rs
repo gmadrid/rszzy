@@ -18,6 +18,15 @@ use processor::ZProcessor;
 use std::io::Read;
 use traits::Memory;
 
+#[macro_export]
+macro_rules! ensure {
+    ( $c:expr, $e:expr ) => {
+        if !($c) {
+            return Err($e);
+        }
+    };
+}
+
 /// The public API for the ZMachine.
 /// All component types are defined.
 pub type ZMachine = Machine<ZMemory>;
@@ -39,7 +48,10 @@ pub struct Machine<M> {
     processor: ZProcessor<M>,
 }
 
-impl<M> Machine<M> where M: Memory {
+impl<M> Machine<M>
+where
+    M: Memory,
+{
     pub fn run(self) -> Result<()> {
         self.processor.process()
     }

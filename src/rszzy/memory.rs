@@ -5,6 +5,7 @@ use super::versions::number_to_version;
 use anyhow::{anyhow, Result};
 use std::io::Read;
 use std::ops::Range;
+use crate::ensure;
 
 /// Concrete model of the ZMachine memory as defined in ZSpec 1.
 ///
@@ -75,13 +76,14 @@ impl ZMemory {
 
         println!("Version: {}", version);
 
-        if version.max_story_len < bytes.len() {
-            return Err(anyhow!(
+        ensure!(
+            bytes.len() <= version.max_story_len,
+            anyhow!(
                 "Story too long. Max: {}. Actual: {}.",
                 version.max_story_len,
                 bytes.len()
-            ));
-        }
+            )
+        );
 
         // ZSpec 1.1
         // - definition of three regions (dynamic, static, high)
@@ -91,20 +93,22 @@ impl ZMemory {
         let end_of_static = std::cmp::min(0xffff, bytes.len());
         let start_of_high = usize::from(bytes::word_from_slice(&bytes, HIGH_MEMORY_MARK));
 
-        if start_of_static < 64 {
-            return Err(anyhow!(
+        ensure!(
+            start_of_static >= 64,
+            anyhow!(
                 "Dynamic memory must contain at least 64 bytes, but contains {}",
                 start_of_static
-            ));
-        }
+            )
+        );
 
-        if start_of_high < start_of_static {
-            return Err(anyhow!(
+        ensure!(
+            start_of_static < start_of_high,
+            anyhow!(
                 "High memory begins at {} which overlaps dynamic memory which ends at {}",
                 start_of_high,
                 start_of_static - 1
-            ));
-        }
+            )
+        );
 
         Ok(ZMemory {
             bytes,

@@ -1,9 +1,9 @@
-use anyhow::Result;
 use super::memory::ZMemory;
 use super::pc::PC;
 use crate::rszzy::abbrevs::ZAbbrevTable;
 use crate::rszzy::text::ZString;
 use crate::rszzy::traits::{AbbrevTable, Memory};
+use anyhow::Result;
 
 type Stack = ();
 
@@ -19,13 +19,16 @@ pub struct ZProcessor<M = ZMemory> {
     stack: (),
 }
 
-impl<M> ZProcessor<M> where M: Memory {
+impl<M> ZProcessor<M>
+where
+    M: Memory,
+{
     pub fn new(memory: M, pc: PC, stack: Stack) -> ZProcessor<M> {
         ZProcessor { memory, pc, stack }
     }
 
     pub fn process(&self) -> Result<()> {
-                let abbrev_table = ZAbbrevTable::new(&self.memory)?;
+        let abbrev_table = ZAbbrevTable::new(&self.memory)?;
         for table in 1..=3 {
             for i in 0..32 {
                 let addr = abbrev_table.abbrev_location(&self.memory, table, i)?;

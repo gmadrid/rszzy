@@ -1,6 +1,7 @@
 use super::addressing::{WordAddress, ZOffset};
 use super::Result;
 use anyhow::anyhow;
+use crate::ensure;
 
 /// Abstract model of ZMachine memory as defined in ZSpec 1.
 /// Implementors of the trait provide access to the backing store,
@@ -20,9 +21,10 @@ pub trait Memory {
     fn read_byte(&self, offset: ZOffset) -> Result<u8> {
         // ZSpec 1.1.1, 1.1.2, 1.1.3
         // - only dynamic and static memory may be read by the game.
-        if !self.in_dynamic_range(offset) && !self.in_static_range(offset) {
-            return Err(anyhow!("Reading from illegal index: {}", offset));
-        }
+        ensure!(
+            self.in_dynamic_range(offset) || self.in_static_range(offset),
+            anyhow!("Reading from illegal index: {}", offset)
+        );
         self.read_byte_unchecked(offset)
     }
 
@@ -30,9 +32,10 @@ pub trait Memory {
         // ZSpec 1.1.1, 1.1.2, 1.1.3
         // - only dynamic memory may be written.
         // TODO ZSpec 1.1.1.1
-        if !self.in_dynamic_range(offset) {
-            return Err(anyhow!("Writing to illegal index: {}", offset));
-        }
+        ensure!(
+            self.in_dynamic_range(offset),
+            anyhow!("Writing to illegal index: {}", offset)
+        );
         self.write_byte_unchecked(offset, val)
     }
 
