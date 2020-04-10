@@ -4,6 +4,7 @@ use super::traits::{AbbrevTable, Memory};
 use crate::rszzy::addressing::ZOffset;
 use anyhow::Result;
 
+// Offset is location of abbrev table from header.
 pub struct ZAbbrevTable(ZOffset);
 
 impl ZAbbrevTable {
