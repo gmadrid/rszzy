@@ -1,8 +1,6 @@
-use crate::rszzy::abbrevs::ZAbbrevTable;
 use crate::rszzy::memory::ZMemory;
 use crate::rszzy::pc::PC;
-use crate::rszzy::text::ZString;
-use crate::rszzy::traits::{AbbrevTable, Memory};
+use crate::rszzy::traits::Memory;
 use anyhow::Result;
 
 type Stack = ();
@@ -28,15 +26,6 @@ where
     }
 
     pub fn process(&self) -> Result<()> {
-        let abbrev_table = ZAbbrevTable::new(&self.memory)?;
-        for table in 1..=3 {
-            for i in 0..32 {
-                let addr = abbrev_table.abbrev_location(&self.memory, table, i)?;
-                let s = ZString::new(self.memory.slice_at(addr.into())?);
-                println!("Table: {}, index: {}: {}", table, i, String::from(s));
-            }
-        }
-
         Ok(())
     }
 }
