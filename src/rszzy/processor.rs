@@ -1,6 +1,6 @@
-use super::memory::ZMemory;
-use super::pc::PC;
 use crate::rszzy::abbrevs::ZAbbrevTable;
+use crate::rszzy::memory::ZMemory;
+use crate::rszzy::pc::PC;
 use crate::rszzy::text::ZString;
 use crate::rszzy::traits::{AbbrevTable, Memory};
 use anyhow::Result;
