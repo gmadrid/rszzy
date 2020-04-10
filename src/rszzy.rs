@@ -66,11 +66,6 @@ where
             }
         }
 
-        //        let addr = abbrevs::abbrev_location(&self._memory, 1, 0)?;
-        //        let s = text::ZString::new(self._memory.
-        //                                   slice_at(addr.into())?);
-        //        let str = String::from(s);
-        //        println!("{}", str);
         Ok(())
     }
 }
