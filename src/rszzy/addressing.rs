@@ -25,6 +25,12 @@ impl From<usize> for ZOffset {
     }
 }
 
+impl From<u16> for ZOffset {
+    fn from(sz: u16) -> ZOffset {
+        ZOffset(usize::from(sz))
+    }
+}
+
 impl<T> std::ops::Add<T> for ZOffset
 where
     T: Into<ZOffset>,
@@ -38,7 +44,7 @@ where
 
 impl Display for ZOffset {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::result::Result<(), std::fmt::Error> {
-        write!(f, "ZO:{}", self.0)
+        write!(f, "ZO:0x{:x}", self.0)
     }
 }
 
@@ -64,6 +70,12 @@ impl From<ByteAddress> for ZOffset {
 /// The underlying value is multiplied by 2 to create the ZOffset.
 #[derive(Debug, Clone, Copy)]
 pub struct WordAddress(u16);
+
+impl From<u16> for WordAddress {
+    fn from(val: u16) -> WordAddress {
+        WordAddress(val)
+    }
+}
 
 impl From<WordAddress> for ZOffset {
     fn from(wa: WordAddress) -> ZOffset {

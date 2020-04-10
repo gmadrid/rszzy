@@ -1,3 +1,4 @@
+mod abbrevs;
 mod addressing;
 mod constants;
 mod header;
@@ -8,6 +9,7 @@ mod text;
 mod traits;
 mod versions;
 
+use crate::rszzy::traits::AbbrevTable;
 use anyhow::Result;
 use header::Header;
 use memory::ZMemory;
@@ -34,12 +36,12 @@ impl ZMachine {
 /// All of the component types are represented as traits to facilitate testing.
 pub struct Machine<M> {
     // The "CPU"
-    _processor: ZProcessor<M>,
+    processor: ZProcessor<M>,
 }
 
-impl<M> Machine<M> {
+impl<M> Machine<M> where M: Memory {
     pub fn run(self) -> Result<()> {
-        Ok(())
+        self.processor.process()
     }
 }
 
@@ -81,7 +83,7 @@ where
 
         let processor = ZProcessor::new(self.memory.unwrap(), self.pc, ());
         Machine {
-            _processor: processor,
+            processor: processor,
         }
     }
 }
