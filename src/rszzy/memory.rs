@@ -115,6 +115,10 @@ impl ZMemory {
 }
 
 impl Memory for ZMemory {
+    fn slice_at(&self, idx: ZOffset) -> Result<&[u8]> {
+        Ok(&self.bytes.as_slice()[usize::from(idx)..])
+    }
+
     fn memory_size(&self) -> usize {
         self.bytes.len()
     }

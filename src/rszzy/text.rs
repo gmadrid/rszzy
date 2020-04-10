@@ -6,19 +6,19 @@ const V2_ALPHA_TABLE: &[u8] =
 
 /// ZSpec 3.8 - A ZSCII character.
 /// ZSCII defines 10-bit characters.
-struct ZSCII(u16);
+pub struct ZSCII(u16);
 
 /// A ZString is a sequence of ZSCII characters.
 /// To minimize copying, ZString is implemented as an Iterator. If a String is desired,
 /// use String::from().
-struct ZString<'a> {
+pub struct ZString<'a> {
     zchars: ZCharIter<'a>,
     active_charset: u8,
 }
 
 impl<'a> ZString<'a> {
     /// Creates a new ZString from the bytes in the slice.
-    fn new(buf: &[u8]) -> ZString {
+    pub fn new(buf: &[u8]) -> ZString {
         ZString {
             zchars: ZCharIter::new(buf),
 

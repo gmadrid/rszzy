@@ -15,6 +15,8 @@ pub trait Memory {
     fn read_byte_unchecked(&self, offset: ZOffset) -> Result<u8>;
     fn write_byte_unchecked(&mut self, offset: ZOffset, val: u8) -> Result<()>;
 
+    fn slice_at(&self, offset: ZOffset) -> Result<&[u8]>;
+
     fn read_byte(&self, offset: ZOffset) -> Result<u8> {
         // ZSpec 1.1.1, 1.1.2, 1.1.3
         // - only dynamic and static memory may be read by the game.

@@ -1,3 +1,4 @@
+mod abbrevs;
 mod addressing;
 mod constants;
 mod memory;
@@ -7,6 +8,7 @@ mod versions;
 
 use anyhow::Result;
 use memory::ZMemory;
+use traits::Memory;
 use std::io::Read;
 
 /// The public API for the ZMachine.
@@ -40,7 +42,7 @@ pub struct Machine<M> {
     _stack: (),
 }
 
-impl<M> Machine<M> {
+impl<M> Machine<M> where M: Memory {
     fn with_memory(memory: M) -> Result<Machine<M>> {
         Ok(Machine {
             _memory: memory,
@@ -51,6 +53,10 @@ impl<M> Machine<M> {
     }
 
     pub fn run(self) -> Result<()> {
+        let addr = abbrevs::abbrev_location()?;
+        let s = text::ZString::new(self._memory.
+                                   slice_at(addr.into())?);
+        let str = String::from(s);
         Ok(())
     }
 }
