@@ -2,10 +2,10 @@ use super::addressing::ZOffset;
 use super::constants::header_offset::{HIGH_MEMORY_MARK, STATIC_MEMORY_START, VERSION_NUMBER};
 use super::traits::Memory;
 use super::versions::number_to_version;
+use crate::ensure;
 use anyhow::{anyhow, Result};
 use std::io::Read;
 use std::ops::Range;
-use crate::ensure;
 
 /// Concrete model of the ZMachine memory as defined in ZSpec 1.
 ///
