@@ -9,7 +9,6 @@ mod text;
 mod traits;
 mod versions;
 
-use crate::rszzy::traits::AbbrevTable;
 use anyhow::Result;
 use header::Header;
 use memory::ZMemory;
@@ -94,8 +93,6 @@ where
         }
 
         let processor = ZProcessor::new(self.memory.unwrap(), self.pc, ());
-        Machine {
-            processor: processor,
-        }
+        Machine { processor }
     }
 }

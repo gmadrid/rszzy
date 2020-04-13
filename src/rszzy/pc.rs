@@ -1,4 +1,4 @@
-use super::addressing::ZOffset;
+use crate::rszzy::addressing::ZOffset;
 use std::ops::AddAssign;
 
 #[derive(Debug, Default)]

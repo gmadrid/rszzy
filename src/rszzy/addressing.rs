@@ -1,4 +1,4 @@
-use super::versions::Version;
+use crate::rszzy::versions::Version;
 use std::fmt::Display;
 
 /// Abstract representation for an offset into the "memory" of the ZMachine.

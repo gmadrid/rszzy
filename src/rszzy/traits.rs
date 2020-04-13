@@ -1,7 +1,6 @@
-use super::addressing::{WordAddress, ZOffset};
-use super::Result;
 use crate::ensure;
-use anyhow::anyhow;
+use crate::rszzy::addressing::{WordAddress, ZOffset};
+use anyhow::{anyhow, Result};
 
 /// Abstract model of ZMachine memory as defined in ZSpec 1.
 /// Implementors of the trait provide access to the backing store,

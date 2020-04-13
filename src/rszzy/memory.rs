@@ -1,8 +1,10 @@
-use super::addressing::ZOffset;
-use super::constants::header_offset::{HIGH_MEMORY_MARK, STATIC_MEMORY_START, VERSION_NUMBER};
-use super::traits::Memory;
-use super::versions::number_to_version;
 use crate::ensure;
+use crate::rszzy::addressing::ZOffset;
+use crate::rszzy::constants::header_offset::{
+    HIGH_MEMORY_MARK, STATIC_MEMORY_START, VERSION_NUMBER,
+};
+use crate::rszzy::traits::Memory;
+use crate::rszzy::versions::number_to_version;
 use anyhow::{anyhow, Result};
 use std::io::Read;
 use std::ops::Range;
@@ -73,8 +75,6 @@ impl ZMemory {
 
         let version_number = bytes::byte_from_slice(&bytes, VERSION_NUMBER);
         let version = number_to_version(version_number)?;
-
-        println!("Version: {}", version);
 
         ensure!(
             bytes.len() <= version.max_story_len,

@@ -1,8 +1,7 @@
-use super::addressing::WordAddress;
-use super::constants::header_offset::ABBREV_TABLE_START;
-use super::traits::{AbbrevTable, Memory};
 use crate::ensure;
-use crate::rszzy::addressing::ZOffset;
+use crate::rszzy::addressing::{WordAddress, ZOffset};
+use crate::rszzy::constants::header_offset::ABBREV_TABLE_START;
+use crate::rszzy::traits::{AbbrevTable, Memory};
 use anyhow::{anyhow, Result};
 
 // Offset is location of abbrev table from header.
@@ -24,7 +23,7 @@ impl AbbrevTable for ZAbbrevTable {
             anyhow!("Table number, {}, is outside legal range, [1,3].", table)
         );
         ensure!(
-            0 <= idx && idx < 32,
+            idx < 32,
             anyhow!("Index number, {}, is outside legal range, [0,32)", idx)
         );
 
