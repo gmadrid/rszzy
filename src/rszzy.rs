@@ -1,23 +1,98 @@
-use anyhow::Result;
-use std::io::Read;
+mod abbrevs;
+mod addressing;
+mod constants;
+mod header;
+mod memory;
+mod pc;
+mod processor;
+mod text;
+mod traits;
+mod versions;
 
-#[derive(Default)]
-pub struct ZMachine {
-    _memory: (),
-    _pc: (),
-    _processor: (),
-    _stack: (),
+use anyhow::Result;
+use header::Header;
+use memory::ZMemory;
+use pc::PC;
+use processor::ZProcessor;
+use std::io::Read;
+use traits::Memory;
+
+#[macro_export]
+macro_rules! ensure {
+    ( $c:expr, $e:expr ) => {
+        if !($c) {
+            return Err($e);
+        }
+    };
 }
 
+/// The public API for the ZMachine.
+/// All component types are defined.
+pub type ZMachine = Machine<ZMemory>;
+
 impl ZMachine {
-    pub fn from_reader<R>(_rdr: R) -> Result<ZMachine>
+    pub fn from_reader<R>(rdr: R) -> Result<ZMachine>
     where
         R: Read,
     {
-        Ok(ZMachine::default())
+        let memory = ZMemory::from_reader(rdr)?;
+        Ok(MachineBuilder::new().memory(memory).build())
+    }
+}
+
+/// Abstract representation of the ZMachine as outlined in the Overview of ZSpec 1.1.
+/// All of the component types are represented as traits to facilitate testing.
+pub struct Machine<M> {
+    // The "CPU"
+    processor: ZProcessor<M>,
+}
+
+impl<M> Machine<M>
+where
+    M: Memory,
+{
+    pub fn run(self) -> Result<()> {
+        self.processor.process()
+    }
+}
+
+pub struct MachineBuilder<M> {
+    memory: Option<M>,
+    pc: PC,
+    stack: Option<()>,
+}
+
+impl<M> MachineBuilder<M>
+where
+    M: Memory,
+{
+    fn new() -> MachineBuilder<M> {
+        MachineBuilder {
+            memory: None,
+            pc: PC::default(),
+            stack: None,
+        }
     }
 
-    pub fn run(self) -> Result<()> {
-        Ok(())
+    fn memory(mut self, memory: M) -> Self {
+        self.memory = Some(memory);
+        self
+    }
+
+    #[cfg(test)]
+    fn pc(mut self, pc: PC) -> Self {
+        self.pc = pc;
+        self
+    }
+
+    fn build(mut self) -> Machine<M> {
+        if self.pc.is_zero() {
+            // If the PC has been set explicitly, leave it alone.
+            // Otherwise, set it from the Header.
+            self.pc = PC::at(Header::start_pc(self.memory.as_ref().unwrap()));
+        }
+
+        let processor = ZProcessor::new(self.memory.unwrap(), self.pc, ());
+        Machine { processor }
     }
 }
