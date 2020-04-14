@@ -1,4 +1,4 @@
-use anyhow::{Error, anyhow};
+use anyhow::{anyhow, Error};
 use fehler::throws;
 use std::fmt::{Display, Formatter};
 

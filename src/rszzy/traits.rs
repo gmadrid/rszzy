@@ -1,6 +1,6 @@
 use super::addressing::ZOffset;
 use anyhow::{anyhow, Error};
-use fehler::{throw,throws};
+use fehler::{throw, throws};
 
 /// Abstract model of ZMachine memory as defined in ZSpec 1.
 /// Implementors of the trait provide access to the backing store,

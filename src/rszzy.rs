@@ -5,7 +5,7 @@ mod text;
 mod traits;
 mod versions;
 
-use anyhow::{Error};
+use anyhow::Error;
 use fehler::throws;
 use memory::ZMemory;
 use std::io::Read;

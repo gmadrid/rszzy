@@ -14,7 +14,7 @@ struct Opt {
 }
 
 #[throws]
-fn main(){
+fn main() {
     let opt = Opt::from_args();
     let file = File::open(&opt.story_file)?;
     let zmachine = ZMachine::from_reader(file)?;
