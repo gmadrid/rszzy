@@ -1,7 +1,9 @@
 mod rszzy;
 
-use std::fs::File;
+use anyhow::Error;
+use fehler::throws;
 use rszzy::ZMachine;
+use std::fs::File;
 use structopt::StructOpt;
 
 #[derive(StructOpt, Debug)]
@@ -11,9 +13,10 @@ struct Opt {
     story_file: std::path::PathBuf,
 }
 
-fn main() -> anyhow::Result<()> {
+#[throws]
+fn main(){
     let opt = Opt::from_args();
     let file = File::open(&opt.story_file)?;
     let zmachine = ZMachine::from_reader(file)?;
-    zmachine.run()
+    zmachine.run()?
 }

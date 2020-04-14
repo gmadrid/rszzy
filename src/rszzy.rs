@@ -1,4 +1,5 @@
-use anyhow::Result;
+use anyhow::Error;
+use fehler::throws;
 use std::io::Read;
 
 #[derive(Default)]
@@ -10,14 +11,14 @@ pub struct ZMachine {
 }
 
 impl ZMachine {
-    pub fn from_reader<R>(_rdr: R) -> Result<ZMachine>
+    #[throws]
+    pub fn from_reader<R>(_rdr: R) -> ZMachine
     where
         R: Read,
     {
-        Ok(ZMachine::default())
+        ZMachine::default()
     }
 
-    pub fn run(self) -> Result<()> {
-        Ok(())
-    }
+    #[throws]
+    pub fn run(self) {}
 }
