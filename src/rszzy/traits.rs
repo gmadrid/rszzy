@@ -1,6 +1,6 @@
 use super::addressing::ZOffset;
-use super::Result;
-use anyhow::anyhow;
+use anyhow::{anyhow, Error};
+use fehler::{throw,throws};
 
 /// Abstract model of ZMachine memory as defined in ZSpec 1.
 /// Implementors of the trait provide access to the backing store,
@@ -12,40 +12,46 @@ pub trait Memory {
     fn in_dynamic_range(&self, idx: ZOffset) -> bool;
     fn in_static_range(&self, idx: ZOffset) -> bool;
 
-    fn read_byte_unchecked(&self, offset: ZOffset) -> Result<u8>;
-    fn write_byte_unchecked(&mut self, offset: ZOffset, val: u8) -> Result<()>;
+    #[throws]
+    fn read_byte_unchecked(&self, offset: ZOffset) -> u8;
+    #[throws]
+    fn write_byte_unchecked(&mut self, offset: ZOffset, val: u8);
 
-    fn read_byte(&self, offset: ZOffset) -> Result<u8> {
+    #[throws]
+    fn read_byte(&self, offset: ZOffset) -> u8 {
         // ZSpec 1.1.1, 1.1.2, 1.1.3
         // - only dynamic and static memory may be read by the game.
         if !self.in_dynamic_range(offset) && !self.in_static_range(offset) {
-            return Err(anyhow!("Reading from illegal index: {}", offset));
+            throw!(anyhow!("Reading from illegal index: {}", offset));
         }
-        self.read_byte_unchecked(offset)
+        self.read_byte_unchecked(offset)?
     }
 
-    fn write_byte(&mut self, offset: ZOffset, val: u8) -> Result<()> {
+    #[throws]
+    fn write_byte(&mut self, offset: ZOffset, val: u8) {
         // ZSpec 1.1.1, 1.1.2, 1.1.3
         // - only dynamic memory may be written.
         // TODO ZSpec 1.1.1.1
         if !self.in_dynamic_range(offset) {
-            return Err(anyhow!("Writing to illegal index: {}", offset));
+            throw!(anyhow!("Writing to illegal index: {}", offset));
         }
-        self.write_byte_unchecked(offset, val)
+        self.write_byte_unchecked(offset, val)?
     }
 
-    fn read_word<T>(&self, at: T) -> Result<u16>
+    #[throws]
+    fn read_word<T>(&self, at: T) -> u16
     where
         T: Into<ZOffset> + Copy,
     {
         let offset = at.into();
         let high_byte = u16::from(self.read_byte(offset)?);
         let low_byte = u16::from(self.read_byte(offset + 1)?);
-        Ok((high_byte << 8) + low_byte)
+        (high_byte << 8) + low_byte
     }
 
     // May fail if word is outside dynamic memory.
-    fn write_word<T>(&mut self, at: T, val: u16) -> Result<()>
+    #[throws]
+    fn write_word<T>(&mut self, at: T, val: u16)
     where
         T: Into<ZOffset> + Copy,
     {
@@ -53,7 +59,7 @@ pub trait Memory {
         let high_byte = ((val >> 8) & 0xff) as u8;
         let low_byte = (val & 0xff) as u8;
         self.write_byte(offset, high_byte)?;
-        self.write_byte(offset + 1, low_byte)
+        self.write_byte(offset + 1, low_byte)?;
     }
 }
 
@@ -82,13 +88,14 @@ mod test {
             (10..20).contains(&usize::from(idx))
         }
 
-        fn read_byte_unchecked(&self, offset: ZOffset) -> Result<u8> {
-            Ok(self.0[usize::from(offset)])
+        #[throws]
+        fn read_byte_unchecked(&self, offset: ZOffset) -> u8 {
+            self.0[usize::from(offset)]
         }
 
-        fn write_byte_unchecked(&mut self, offset: ZOffset, val: u8) -> Result<()> {
+        #[throws]
+        fn write_byte_unchecked(&mut self, offset: ZOffset, val: u8) {
             self.0[usize::from(offset)] = val;
-            Ok(())
         }
     }
 
