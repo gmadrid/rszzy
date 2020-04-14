@@ -4,7 +4,8 @@ mod memory;
 mod traits;
 mod versions;
 
-use anyhow::Result;
+use anyhow::{Error, Result};
+use fehler::throws;
 use memory::ZMemory;
 use std::io::Read;
 
@@ -13,7 +14,8 @@ use std::io::Read;
 pub type ZMachine = Machine<ZMemory>;
 
 impl ZMachine {
-    pub fn from_reader<R>(rdr: R) -> Result<ZMachine>
+    #[throws]
+    pub fn from_reader<R>(rdr: R) -> ZMachine
     where
         R: Read,
     {
@@ -40,16 +42,15 @@ pub struct Machine<M> {
 }
 
 impl<M> Machine<M> {
-    fn with_memory(memory: M) -> Result<Machine<M>> {
-        Ok(Machine {
+    fn with_memory(memory: M) -> Machine<M> {
+        Machine {
             _memory: memory,
             _pc: (),
             _processor: (),
             _stack: (),
-        })
+        }
     }
 
-    pub fn run(self) -> Result<()> {
-        Ok(())
-    }
+    #[throws]
+    pub fn run(self) {}
 }
