@@ -12,9 +12,11 @@ Cargo.lock
 # Emacs automatic backup files.
 *~
 
+# Don't share my IntelliJ config.
+.idea
+
 # This is Activision's property, and I don't want to distribute it via git.
 Zork1.z3
 
-# Don't share my IntelliJ config.
-.idea
+# The dumps are derived from the .z3 file, so I can't put them on github.
 dumps
