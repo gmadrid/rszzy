@@ -1,4 +1,5 @@
-use anyhow::{anyhow, Result};
+use anyhow::{anyhow, Error};
+use fehler::throws;
 use std::fmt::{Display, Formatter};
 
 pub struct Version {
@@ -26,11 +27,12 @@ const V5: Version = Version {
     packed_multiplier: 4,
 };
 
-pub fn number_to_version(number: u8) -> Result<&'static Version> {
+#[throws]
+pub fn number_to_version(number: u8) -> &'static Version {
     let versions: Vec<&'static Version> = vec![&V3, &V5];
 
     versions
         .into_iter()
         .find(|v| v.version_number == number)
-        .ok_or_else(|| anyhow!("Unknown (or unimplemented) version number: {}", number))
+        .ok_or_else(|| anyhow!("Unknown (or unimplemented) version number: {}", number))?
 }

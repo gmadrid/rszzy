@@ -1,7 +1,8 @@
 use crate::rszzy::memory::ZMemory;
 use crate::rszzy::pc::PC;
 use crate::rszzy::traits::Memory;
-use anyhow::Result;
+use anyhow::Error;
+use fehler::throws;
 
 type Stack = ();
 
@@ -25,7 +26,7 @@ where
         ZProcessor { memory, pc, stack }
     }
 
-    pub fn process(&self) -> Result<()> {
-        Ok(())
+    #[throws]
+    pub fn process(&self)  {
     }
 }
