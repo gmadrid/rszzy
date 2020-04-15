@@ -5,6 +5,7 @@ mod header;
 mod memory;
 mod pc;
 mod processor;
+mod stack;
 mod text;
 mod traits;
 mod versions;
@@ -15,8 +16,9 @@ use header::Header;
 use memory::ZMemory;
 use pc::PC;
 use processor::ZProcessor;
+use stack::ZStack;
 use std::io::Read;
-use traits::Memory;
+use traits::{Memory, Stack};
 
 #[macro_export]
 macro_rules! ensure {
@@ -38,7 +40,8 @@ impl ZMachine {
         R: Read,
     {
         let memory = ZMemory::from_reader(rdr)?;
-        MachineBuilder::new().memory(memory).build()
+        let stack = ZStack::default();
+        MachineBuilder::new().memory(memory).stack(stack).build()
     }
 }
 
@@ -46,7 +49,8 @@ impl ZMachine {
 /// All of the component types are represented as traits to facilitate testing.
 pub struct Machine<M> {
     // The "CPU"
-    processor: ZProcessor<M>,
+    processor: ZProcessor,
+    _phantom: std::marker::PhantomData<M>
 }
 
 impl<M> Machine<M>
@@ -59,17 +63,18 @@ where
     }
 }
 
-pub struct MachineBuilder<M> {
+pub struct MachineBuilder<M, S> {
     memory: Option<M>,
     pc: PC,
-    stack: Option<()>,
+    stack: Option<S>,
 }
 
-impl<M> MachineBuilder<M>
+impl<M, S> MachineBuilder<M, S>
 where
     M: Memory,
+S: Stack,
 {
-    fn new() -> MachineBuilder<M> {
+    fn new() -> MachineBuilder<M, S> {
         MachineBuilder {
             memory: None,
             pc: PC::default(),
@@ -79,6 +84,11 @@ where
 
     fn memory(mut self, memory: M) -> Self {
         self.memory = Some(memory);
+        self
+    }
+
+    fn stack(mut self, stack: S) -> Self {
+        self.stack = Some(stack);
         self
     }
 
@@ -95,7 +105,9 @@ where
             self.pc = PC::at(Header::start_pc(self.memory.as_ref().unwrap()));
         }
 
-        let processor = ZProcessor::new(self.memory.unwrap(), self.pc, ());
+        // CHECK Options and return a Result
+
+        let processor = ZProcessor::new(self.memory.unwrap(), self.pc, self.stack.unwrap());
         Machine { processor }
     }
 }
