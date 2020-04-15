@@ -9,7 +9,8 @@ mod text;
 mod traits;
 mod versions;
 
-use anyhow::Result;
+use anyhow::Error;
+use fehler::throws;
 use header::Header;
 use memory::ZMemory;
 use pc::PC;
@@ -31,12 +32,13 @@ macro_rules! ensure {
 pub type ZMachine = Machine<ZMemory>;
 
 impl ZMachine {
-    pub fn from_reader<R>(rdr: R) -> Result<ZMachine>
+    #[throws]
+    pub fn from_reader<R>(rdr: R) -> ZMachine
     where
         R: Read,
     {
         let memory = ZMemory::from_reader(rdr)?;
-        Ok(MachineBuilder::new().memory(memory).build())
+        MachineBuilder::new().memory(memory).build()
     }
 }
 
@@ -51,8 +53,9 @@ impl<M> Machine<M>
 where
     M: Memory,
 {
-    pub fn run(self) -> Result<()> {
-        self.processor.process()
+    #[throws]
+    pub fn run(self) {
+        self.processor.process()?;
     }
 }
 
