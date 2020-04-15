@@ -96,6 +96,10 @@ mod test {
             self.0[usize::from(offset)] = val;
             Ok(())
         }
+
+        fn slice_at(&self, offset: ZOffset) -> Result<&[u8]> {
+            Ok(&self.0[usize::from(offset)..])
+        }
     }
 
     #[test]
