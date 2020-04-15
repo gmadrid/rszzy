@@ -31,6 +31,13 @@ impl From<u16> for ZOffset {
     }
 }
 
+impl From<i32> for ZOffset {
+    fn from(sz: i32) -> ZOffset {
+        // Range check or
+        ZOffset(sz as usize)
+    }
+}
+
 impl<T> std::ops::Add<T> for ZOffset
 where
     T: Into<ZOffset>,
@@ -102,7 +109,7 @@ mod test {
     fn test_zoffset() {
         assert_eq!(32, usize::from(ZOffset::from(32)));
         assert_eq!(55, usize::from(ZOffset::from(50) + 5));
-        assert_eq!("ZO:88", format!("{}", ZOffset(88)));
+        assert_eq!("ZO:0x88", format!("{}", ZOffset(0x88)));
     }
 
     #[test]

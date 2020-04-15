@@ -2,7 +2,8 @@ use super::addressing::ZOffset;
 use super::constants::header_offset::{HIGH_MEMORY_MARK, STATIC_MEMORY_START, VERSION_NUMBER};
 use super::traits::Memory;
 use super::versions::number_to_version;
-use anyhow::{anyhow, Result};
+use anyhow::{anyhow, Error};
+use fehler::{throw, throws};
 use std::io::Read;
 use std::ops::Range;
 
@@ -63,7 +64,8 @@ mod bytes {
 }
 
 impl ZMemory {
-    pub fn from_reader<R>(mut rdr: R) -> Result<ZMemory>
+    #[throws]
+    pub fn from_reader<R>(mut rdr: R) -> ZMemory
     where
         R: Read,
     {
@@ -76,7 +78,7 @@ impl ZMemory {
         println!("Version: {}", version);
 
         if version.max_story_len < bytes.len() {
-            return Err(anyhow!(
+            throw!(anyhow!(
                 "Story too long. Max: {}. Actual: {}.",
                 version.max_story_len,
                 bytes.len()
@@ -92,31 +94,32 @@ impl ZMemory {
         let start_of_high = usize::from(bytes::word_from_slice(&bytes, HIGH_MEMORY_MARK));
 
         if start_of_static < 64 {
-            return Err(anyhow!(
+            throw!(anyhow!(
                 "Dynamic memory must contain at least 64 bytes, but contains {}",
                 start_of_static
             ));
         }
 
         if start_of_high < start_of_static {
-            return Err(anyhow!(
+            throw!(anyhow!(
                 "High memory begins at {} which overlaps dynamic memory which ends at {}",
                 start_of_high,
                 start_of_static - 1
             ));
         }
 
-        Ok(ZMemory {
+        ZMemory {
             bytes,
             dynamic_range: 0..start_of_static,
             static_range: start_of_static..end_of_static,
-        })
+        }
     }
 }
 
 impl Memory for ZMemory {
-    fn slice_at(&self, idx: ZOffset) -> Result<&[u8]> {
-        Ok(&self.bytes.as_slice()[usize::from(idx)..])
+    #[throws]
+    fn slice_at(&self, idx: ZOffset) -> &[u8] {
+        &self.bytes.as_slice()[usize::from(idx)..]
     }
 
     fn memory_size(&self) -> usize {
@@ -131,13 +134,14 @@ impl Memory for ZMemory {
         self.static_range.contains(&usize::from(idx))
     }
 
-    fn read_byte_unchecked(&self, offset: ZOffset) -> Result<u8> {
-        Ok(bytes::byte_from_slice(&self.bytes, offset))
+    #[throws]
+    fn read_byte_unchecked(&self, offset: ZOffset) -> u8 {
+        bytes::byte_from_slice(&self.bytes, offset)
     }
 
-    fn write_byte_unchecked(&mut self, offset: ZOffset, val: u8) -> Result<()> {
+    #[throws]
+    fn write_byte_unchecked(&mut self, offset: ZOffset, val: u8) {
         bytes::byte_to_slice(&mut self.bytes, offset, val);
-        Ok(())
     }
 }
 
