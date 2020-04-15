@@ -54,7 +54,7 @@ where
     M: Memory,
 {
     #[throws]
-    pub fn run(self)  {
+    pub fn run(self) {
         self.processor.process()?;
     }
 }

@@ -3,8 +3,8 @@ use super::constants::header_offset::ABBREV_TABLE_START;
 use super::traits::{AbbrevTable, Memory};
 use crate::ensure;
 use crate::rszzy::addressing::ZOffset;
-use anyhow::{anyhow,Error};
-use fehler::{throws};
+use anyhow::{anyhow, Error};
+use fehler::throws;
 
 // Offset is location of abbrev table from header.
 pub struct ZAbbrevTable(ZOffset);

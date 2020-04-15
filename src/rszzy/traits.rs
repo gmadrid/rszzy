@@ -1,7 +1,7 @@
 use super::addressing::{WordAddress, ZOffset};
 use crate::ensure;
 use anyhow::{anyhow, Error};
-use fehler::{throws};
+use fehler::throws;
 
 /// Abstract model of ZMachine memory as defined in ZSpec 1.
 /// Implementors of the trait provide access to the backing store,
