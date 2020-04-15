@@ -7,7 +7,8 @@ mod traits;
 mod versions;
 
 use crate::rszzy::traits::AbbrevTable;
-use anyhow::Result;
+use anyhow::Error;
+use fehler::throws;
 use memory::ZMemory;
 use std::io::Read;
 use traits::Memory;
@@ -17,7 +18,8 @@ use traits::Memory;
 pub type ZMachine = Machine<ZMemory>;
 
 impl ZMachine {
-    pub fn from_reader<R>(rdr: R) -> Result<ZMachine>
+    #[throws]
+    pub fn from_reader<R>(rdr: R) -> ZMachine
     where
         R: Read,
     {
@@ -43,20 +45,18 @@ pub struct Machine<M> {
     _stack: (),
 }
 
-impl<M> Machine<M>
-where
-    M: Memory,
-{
-    fn with_memory(memory: M) -> Result<Machine<M>> {
-        Ok(Machine {
+impl<M> Machine<M> where M: Memory, {
+    fn with_memory(memory: M) -> Machine<M> {
+        Machine {
             _memory: memory,
             _pc: (),
             _processor: (),
             _stack: (),
-        })
+        }
     }
 
-    pub fn run(self) -> Result<()> {
+    #[throws]
+    pub fn run(self) {
         let abbrev_table = abbrevs::ZAbbrevTable::new(&self._memory)?;
         for table in 1..=3 {
             for i in 0..32 {
@@ -65,12 +65,5 @@ where
                 println!("Table: {}, index: {}: {}", table, i, String::from(s));
             }
         }
-
-        //        let addr = abbrevs::abbrev_location(&self._memory, 1, 0)?;
-        //        let s = text::ZString::new(self._memory.
-        //                                   slice_at(addr.into())?);
-        //        let str = String::from(s);
-        //        println!("{}", str);
-        Ok(())
     }
 }
