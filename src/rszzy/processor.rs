@@ -6,7 +6,6 @@ use fehler::throws;
 
 pub struct ZVariable;
 
-#[derive(Default, Debug)]
 pub struct ZProcessor {
     // The ZMachine's "core" memory.
     memory: ZMemory,
