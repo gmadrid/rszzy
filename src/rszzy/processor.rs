@@ -4,8 +4,6 @@ use crate::rszzy::stack::ZStack;
 use anyhow::Error;
 use fehler::throws;
 
-pub struct ZVariable;
-
 pub struct ZProcessor {
     // The ZMachine's "core" memory.
     memory: ZMemory,

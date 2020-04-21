@@ -10,7 +10,7 @@ use std::fmt::Display;
 /// * the PC (this is not called out explicitly in the ZSpec, but it acts as a ZOffset.
 ///
 /// See each address type for details.
-#[derive(Default, Debug, Clone, Copy)]
+#[derive(Default, Clone, Copy)]
 pub struct ZOffset(usize);
 
 impl From<ZOffset> for usize {
@@ -54,6 +54,13 @@ impl Display for ZOffset {
         write!(f, "ZO:0x{:x}", self.0)
     }
 }
+
+impl std::fmt::Debug for ZOffset {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "ZO:0x{:x}", self.0)
+    }
+}
+
 
 // ZSpec 1.2 - three kinds of addresses.
 

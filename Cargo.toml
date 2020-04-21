@@ -7,5 +7,5 @@ edition = "2018"
 [dependencies]
 anyhow = "1.0.28"
 guard = "0.5.0"
-fehler = { version = "1.0.0", path = "../fehler" }
+fehler = { version = "1.0.0", path = "../../fehler" }
 structopt = "0.3.13"

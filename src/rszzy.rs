@@ -1,13 +1,17 @@
 mod abbrevs;
 mod addressing;
+mod bytes;
 mod constants;
 mod header;
 mod memory;
 mod pc;
 mod processor;
 mod stack;
+#[cfg(test)]
+mod test;
 mod text;
 mod traits;
+mod variable;
 mod versions;
 
 use anyhow::Error;
@@ -18,6 +22,7 @@ use pc::PC;
 use processor::ZProcessor;
 use stack::ZStack;
 use std::io::Read;
+
 
 #[macro_export]
 macro_rules! ensure {

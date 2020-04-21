@@ -1,5 +1,5 @@
 use crate::ensure;
-use crate::rszzy::processor::ZVariable;
+use crate::rszzy::variable::ZVariable;
 use crate::rszzy::addressing::{WordAddress, ZOffset};
 use anyhow::{anyhow, Error};
 use fehler::throws;
@@ -82,14 +82,14 @@ pub trait Stack {
     fn pop_byte(&mut self) -> u8;
 
     #[throws]
-    fn read_local(&self, l:u8) -> u16;
-    #[throws]
-    fn write_local(&mut self, l: u8, val: u16);
-
-    #[throws]
-    fn push_frame(&mut self, return_pc: usize, num_locals:u8, return_var: ZVariable, operands:&[u16]);
+    fn push_frame(&mut self, return_pc: ZOffset, num_locals:u8, return_var: ZVariable, operands:&[u16]);
     #[throws]
     fn pop_frame(&mut self);
+
+    #[throws]
+    fn read_local(&self, var:ZVariable) -> u16;
+    #[throws]
+    fn write_local(&mut self, var: ZVariable, val: u16);
 
     fn return_pc(&self) -> usize;
     fn return_variable(&self) -> ZVariable;
@@ -111,6 +111,7 @@ pub trait Stack {
 #[cfg(test)]
 mod test {
     use super::*;
+    use crate::rszzy::test::TestStack;
 
     struct TestMemory(Vec<u8>);
 
@@ -154,28 +155,30 @@ mod test {
         assert_eq!(100, TestMemory::default().memory_size())
     }
 
+    #[throws]
     #[test]
     fn test_unchecked() {
         let mut m = TestMemory::default();
-        assert_eq!(10, m.read_byte_unchecked(5.into()).unwrap());
-        assert_eq!(30, m.read_byte_unchecked(15.into()).unwrap());
-        assert_eq!(50, m.read_byte_unchecked(25.into()).unwrap());
+        assert_eq!(10, m.read_byte_unchecked(5.into())?);
+        assert_eq!(30, m.read_byte_unchecked(15.into())?);
+        assert_eq!(50, m.read_byte_unchecked(25.into())?);
 
         assert!(true);
         assert!(m.write_byte_unchecked(5.into(), 33).is_ok());
         assert!(m.write_byte_unchecked(15.into(), 34).is_ok());
         assert!(m.write_byte_unchecked(25.into(), 35).is_ok());
 
-        assert_eq!(33, m.read_byte_unchecked(5.into()).unwrap());
-        assert_eq!(34, m.read_byte_unchecked(15.into()).unwrap());
-        assert_eq!(35, m.read_byte_unchecked(25.into()).unwrap());
+        assert_eq!(33, m.read_byte_unchecked(5.into())?);
+        assert_eq!(34, m.read_byte_unchecked(15.into())?);
+        assert_eq!(35, m.read_byte_unchecked(25.into())?);
     }
 
     #[test]
+    #[throws]
     fn test_checked() {
         let mut m = TestMemory::default();
-        assert_eq!(10, m.read_byte(5.into()).unwrap());
-        assert_eq!(30, m.read_byte(15.into()).unwrap());
+        assert_eq!(10, m.read_byte(5.into())?);
+        assert_eq!(30, m.read_byte(15.into())?);
 
         // cannot read from high memory
         assert!(m.read_byte(25.into()).is_err());
@@ -187,10 +190,24 @@ mod test {
         assert!(m.write_byte(15.into(), 34).is_err());
         assert!(m.write_byte(25.into(), 35).is_err());
 
-        assert_eq!(33, m.read_byte(5.into()).unwrap());
+        assert_eq!(33, m.read_byte(5.into())?);
 
         // these values should be unchanged
-        assert_eq!(30, m.read_byte_unchecked(15.into()).unwrap());
-        assert_eq!(50, m.read_byte_unchecked(25.into()).unwrap());
+        assert_eq!(30, m.read_byte_unchecked(15.into())?);
+        assert_eq!(50, m.read_byte_unchecked(25.into())?);
+    }
+
+    #[test]
+    #[throws]
+    fn pushing_popping_words() {
+        let mut stack = TestStack::default();
+
+        stack.push_word(0x1234)?;
+        stack.push_word(0x5678)?;
+
+        assert_eq!(vec![0x12, 0x34, 0x56, 0x78], stack.vec);
+
+        assert_eq!(0x5678, stack.pop_word()?);
+        assert_eq!(0x1234, stack.pop_word()?);
     }
 }
