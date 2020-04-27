@@ -23,7 +23,6 @@ use processor::ZProcessor;
 use stack::ZStack;
 use std::io::Read;
 
-
 #[macro_export]
 macro_rules! ensure {
     ( $c:expr, $e:expr ) => {
@@ -56,22 +55,20 @@ pub struct Machine {
     processor: ZProcessor,
 }
 
-impl Machine
-{
+impl Machine {
     #[throws]
     pub fn run(self) {
         self.processor.process()?;
     }
 }
 
-pub struct MachineBuilder{
+pub struct MachineBuilder {
     memory: Option<ZMemory>,
     pc: PC,
     stack: Option<ZStack>,
 }
 
-impl MachineBuilder
-{
+impl MachineBuilder {
     fn new() -> MachineBuilder {
         MachineBuilder {
             memory: None,

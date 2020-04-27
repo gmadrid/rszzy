@@ -12,11 +12,10 @@ pub struct ZProcessor {
     pc: PC,
 
     // Runtime stack for procedure calls/local vars
-    stack: ZStack
+    stack: ZStack,
 }
 
-impl ZProcessor
-{
+impl ZProcessor {
     pub fn new(memory: ZMemory, pc: PC, stack: ZStack) -> ZProcessor {
         ZProcessor { memory, pc, stack }
     }

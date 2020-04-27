@@ -1,6 +1,6 @@
 use crate::ensure;
-use crate::rszzy::variable::ZVariable;
 use crate::rszzy::addressing::{WordAddress, ZOffset};
+use crate::rszzy::variable::ZVariable;
 use anyhow::{anyhow, Error};
 use fehler::throws;
 
@@ -82,12 +82,18 @@ pub trait Stack {
     fn pop_byte(&mut self) -> u8;
 
     #[throws]
-    fn push_frame(&mut self, return_pc: ZOffset, num_locals:u8, return_var: ZVariable, operands:&[u16]);
+    fn push_frame(
+        &mut self,
+        return_pc: ZOffset,
+        num_locals: u8,
+        return_var: ZVariable,
+        operands: &[u16],
+    );
     #[throws]
     fn pop_frame(&mut self);
 
     #[throws]
-    fn read_local(&self, var:ZVariable) -> u16;
+    fn read_local(&self, var: ZVariable) -> u16;
     #[throws]
     fn write_local(&mut self, var: ZVariable, val: u16);
 
@@ -95,7 +101,7 @@ pub trait Stack {
     fn return_variable(&self) -> ZVariable;
 
     #[throws]
-    fn push_word(&mut self, word:u16) {
+    fn push_word(&mut self, word: u16) {
         self.push_byte((word >> 8 & 0xff) as u8)?;
         self.push_byte((word & 0xff) as u8)?;
     }

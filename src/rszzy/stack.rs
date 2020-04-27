@@ -4,7 +4,7 @@ use crate::rszzy::traits::Stack;
 use crate::rszzy::variable::ZVariable;
 use crate::rszzy::{bytes, constants::stack::STACK_SIZE};
 use anyhow::{anyhow, Error};
-use fehler::{throws};
+use fehler::throws;
 
 // Each frame has the following fields:
 //
@@ -167,6 +167,14 @@ impl Stack for ZStack {
             var.is_local(),
             anyhow!("Expected local variable, got {}", var)
         );
+        ensure!(
+            var.index().unwrap() < self.num_locals(),
+            anyhow!(
+                "Local out of range: {}, expected < {}",
+                var.index().unwrap(),
+                self.num_locals()
+            )
+        );
         bytes::word_from_slice(
             &self.stack,
             self.fp + LOCAL_VAR_OFFSET + usize::from(var.index()?) * 2,
@@ -207,10 +215,14 @@ mod test {
     // These values are implementation specific. See comments for ZStack.
     const INITIAL_STACK_LEN: usize = 8;
     const INITIAL_STACK: [u8; INITIAL_STACK_LEN] = [
-        0x10, // 2 bytes: Initial frame pointer (4096 - an illegal value).
-        0x00, 0x00, // 4 bytes: Initial return PC (0x00 - cannot return from main)
-        0x00, 0x00, 0x00, 0x00, // Variable for return value (ZVariable::Stack.into()
-        0x00, // 0 locals
+        // 2 bytes: Initial frame pointer (4096 - one past the stack size).
+        0x10, 0x00, //
+        // 4 bytes: Initial return PC (0x00 - cannot return from main)
+        0x00, 0x00, 0x00, 0x00, //
+        // Variable for return value (ZVariable::Stack.into()
+        0x00, //
+        // 0 locals
+        0x00, //
     ];
 
     /// Return a slice of the stack, skipping the INITIAL_STACK component.
@@ -221,9 +233,29 @@ mod test {
 
     #[test]
     fn test_new_stack() {
+        // The initial Z3 stack should look be properly formed.  See INITIAL_STACK.
         let stack = ZStack::default();
 
         assert_eq!(INITIAL_STACK, stack.stack[0..8]);
+        assert_eq!(0, stack.fp);
+
+        // Each frame is 8 bytes, so sp/s0 point to next byte.
+        assert_eq!(8, stack.sp);
+        assert_eq!(8, stack.s0);
+
+        // FP should point to invalid value (one past end of the stack array).
+        let fp = usize::from(bytes::word_from_slice(&stack.stack, 0usize));
+        assert_eq!(STACK_SIZE, fp);
+
+        // return_pc should be 0
+        let return_pc = bytes::long_word_from_slice(&stack.stack, 2usize);
+        assert_eq!(0, return_pc);
+
+        // return value is Stack (0x00)
+        assert_eq!(u8::from(ZVariable::stack()), stack.stack[6]);
+
+        // and there are no locals.
+        assert_eq!(0, stack.stack[7]);
     }
 
     #[throws]
@@ -384,5 +416,54 @@ mod test {
         assert_eq!(0x12, stack.pop_byte()?);
     }
 
-    // TODO: add some more tests.
+    #[test]
+    fn test_push_too_many_operands() {
+        let mut stack = ZStack::default();
+
+        stack
+            .push_frame(
+                ZOffset::from(0xbabef00dusize),
+                2,
+                ZVariable::stack(),
+                &[11, 24, 36, 48],
+            )
+            .unwrap();
+
+        assert_eq!(2, stack.num_locals());
+        assert_eq!(11, stack.read_local(ZVariable::local(0).unwrap()).unwrap());
+        assert_eq!(24, stack.read_local(ZVariable::local(1).unwrap()).unwrap());
+
+        // TODO: add a test to ensure that all of the operands don't get pushed.
+    }
+
+    #[test]
+    fn test_local_range_check() {
+        let mut stack = ZStack::default();
+
+        stack
+            .push_frame(ZOffset::from(0xbabef00dusize), 1, ZVariable::stack(), &[22])
+            .unwrap();
+
+        assert_eq!(22, stack.read_local(ZVariable::local(0).unwrap()).unwrap());
+        assert!(stack.read_local(ZVariable::local(1).unwrap()).is_err());
+    }
+
+    #[test]
+    fn test_pop_missing_stack_frame() {
+        let mut stack = ZStack::default();
+
+        assert!(stack.pop_frame().is_err());
+    }
+
+    #[test]
+    fn test_stack_frame_overflow() {
+        let mut stack = ZStack::default();
+
+        // 170 stack frames if an many as fit on the current-sized frame.
+        for _ in 0..170 {
+            stack.push_frame(ZOffset::from(0x1000usize), 8, ZVariable::stack(), &[]).unwrap();
+        }
+
+        assert!(stack.push_frame(ZOffset::from(0x2000usize), 8, ZVariable::stack(), &[]).is_err());
+    }
 }

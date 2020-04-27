@@ -1,11 +1,6 @@
+use crate::rszzy::{addressing::ZOffset, traits::Stack, variable::ZVariable};
 use anyhow::Error;
 use fehler::throws;
-use crate::rszzy::{
-    addressing::ZOffset,
-    traits::Stack,
-    variable::ZVariable,
-};
-
 
 #[derive(Default)]
 pub struct TestStack {
@@ -24,7 +19,13 @@ impl Stack for TestStack {
     }
 
     #[throws]
-    fn push_frame(&mut self, return_pc: ZOffset, num_locals: u8, return_var: ZVariable, operands: &[u16]) {
+    fn push_frame(
+        &mut self,
+        return_pc: ZOffset,
+        num_locals: u8,
+        return_var: ZVariable,
+        operands: &[u16],
+    ) {
         unimplemented!()
     }
 
@@ -50,6 +51,4 @@ impl Stack for TestStack {
     fn return_variable(&self) -> ZVariable {
         unimplemented!()
     }
-
 }
-

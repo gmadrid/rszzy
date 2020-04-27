@@ -61,7 +61,6 @@ impl std::fmt::Debug for ZOffset {
     }
 }
 
-
 // ZSpec 1.2 - three kinds of addresses.
 
 /// ZSpec 1.2.1 - 2-byte address that can be used directly.

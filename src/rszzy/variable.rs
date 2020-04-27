@@ -1,7 +1,7 @@
-use std::fmt;
-use anyhow::{anyhow, Error};
-use fehler::{throw,throws};
 use crate::ensure;
+use anyhow::{anyhow, Error};
+use fehler::{throw, throws};
+use std::fmt;
 
 // These numbers all come from ZSpec 4.2.2.
 // _RAW values are before converting to ZVariables. So, the Local represented by Raw 1 is L00.
@@ -33,7 +33,10 @@ impl ZVariable {
 
     #[throws]
     pub fn local(lidx: u8) -> ZVariable {
-        ensure!((0..=MAX_LOCAL).contains(&lidx), anyhow!("Local variable out of range: {}", lidx) );
+        ensure!(
+            (0..=MAX_LOCAL).contains(&lidx),
+            anyhow!("Local variable out of range: {}", lidx)
+        );
         ZVariable(lidx + LOCAL_START_RAW)
     }
 
@@ -43,7 +46,10 @@ impl ZVariable {
 
     #[throws]
     pub fn global(gidx: u8) -> ZVariable {
-        ensure!((0..=MAX_GLOBAL).contains(&gidx), anyhow!("Global variable out of range: {}", gidx));
+        ensure!(
+            (0..=MAX_GLOBAL).contains(&gidx),
+            anyhow!("Global variable out of range: {}", gidx)
+        );
         ZVariable(gidx + GLOBAL_START_RAW)
     }
 
@@ -55,7 +61,7 @@ impl ZVariable {
     pub fn index(&self) -> u8 {
         match self.0 {
             LOCAL_START_RAW..=LOCAL_END_RAW => self.0 - LOCAL_START_RAW,
-            GLOBAL_START_RAW ..= GLOBAL_END_RAW => self.0 - GLOBAL_START_RAW,
+            GLOBAL_START_RAW..=GLOBAL_END_RAW => self.0 - GLOBAL_START_RAW,
             _ => throw!(anyhow!("Cannot provide index for Stack variable.")),
         }
     }
@@ -142,5 +148,4 @@ mod test {
         assert!(!max.is_local());
         assert!(max.is_global());
     }
-
 }

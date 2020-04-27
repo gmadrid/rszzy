@@ -1,13 +1,11 @@
 use crate::ensure;
 use crate::rszzy::addressing::ZOffset;
+use crate::rszzy::bytes;
 use crate::rszzy::constants::header_offset::{
     HIGH_MEMORY_MARK, STATIC_MEMORY_START, VERSION_NUMBER,
 };
 use crate::rszzy::traits::Memory;
 use crate::rszzy::versions::number_to_version;
-use crate::rszzy::{
-    bytes,
-};
 use anyhow::{anyhow, Error};
 use fehler::throws;
 use std::io::Read;
